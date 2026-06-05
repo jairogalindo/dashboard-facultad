@@ -152,7 +152,7 @@ st.sidebar.markdown(
     """
     <div style='font-size: 0.85rem; color: #555555; text-align: center;'>
         <p>© 2026 <b>Jairo Alberto Galindo Cuesta</b></p>
-        <p>Coordinador de Investigación MDGEVA<br>
+        <p>Profesor MDGEVA<br>
         <a href="https://www.unisalle.edu.co" target="_blank" style="color: #00A86B; text-decoration: none; font-weight: bold;">Universidad de La Salle</a></p>
         <p><a href="https://escrituradigital.net" target="_blank" style="color: #0066cc; text-decoration: none;">escrituradigital.net</a></p>
     </div>
