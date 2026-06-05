@@ -133,3 +133,16 @@ if maestrias_disponibles:
                     )
 else:
     st.warning("No se encontraron datos que coincidan con los filtros aplicados.")
+
+# --- SECCIÓN DE CRÉDITOS EN LA BARRA LATERAL ---
+st.sidebar.write("---")
+st.sidebar.markdown(
+    """
+    <div style='font-size: 0.85rem; color: #555555; text-align: center;'>
+        <p>© 2026 <b>Jairo Alberto Galindo Cuesta</b></p>
+        <p>Docente<br>Facultad de Ciencias de la Educación - Universidad de La Salle, Colombia</p>
+        <p><a href="https://escrituradigital.net" target="_blank" style="color: #0066cc; text-decoration: none;">escrituradigital.net</a></p>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
