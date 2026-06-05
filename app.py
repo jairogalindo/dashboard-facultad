@@ -53,7 +53,6 @@ def load_data():
     }
     
     df_clean = df[list(columnas_clave.keys())].rename(columns=columnas_clave)
-    # Eliminar filas vacías en el nombre del proyecto
     df_clean = df_clean.dropna(subset=['Proyecto']).drop_duplicates()
     return df_clean
 
@@ -66,6 +65,26 @@ except Exception as e:
 # --- INTERFAZ DE USUARIO ---
 st.title("🎓 Sistema de Gestión de Proyectos por Maestría")
 st.markdown("Consulta y organización de proyectos segmentados por programa académico, temáticas y asignaciones logísticas.")
+st.write("---")
+
+# --- 📊 NUEVO CONTADOR DE ESTADÍSTICAS GLOBALES ---
+st.subheader("📈 Indicadores y Estadísticas Generales (Facultad)")
+total_proyectos = len(data)
+total_sustentaciones = len(data[data['Clasificación'] == 'Sustentación'])
+total_cogrados = len(data[data['Clasificación'] == 'Cogrado'])
+total_tematicas = data['Temática / Mesa'].nunique()
+
+# Diseño de tarjetas en columnas para las métricas
+col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
+with col_stat1:
+    st.info(f"**Total Proyectos**\n# {total_proyectos}")
+with col_stat2:
+    st.success(f"**Sustentaciones**\n# {total_sustentaciones}")
+with col_stat3:
+    st.warning(f"**Cogrados**\n# {total_cogrados}")
+with col_stat4:
+    st.metric(label="Líneas/Temáticas", value=total_tematicas)
+
 st.write("---")
 
 # --- FILTROS LATERALES ---
@@ -84,7 +103,6 @@ else:
 # --- NAVEGACIÓN PRINCIPAL POR MAESTRÍAS ---
 maestrias_disponibles = sorted(data_filtered['Maestría'].unique())
 
-# Crear pestañas principales por cada Maestría detectada
 if maestrias_disponibles:
     tabs_maestrias = st.tabs(maestrias_disponibles)
     
@@ -92,12 +110,11 @@ if maestrias_disponibles:
         with tabs_maestrias[index]:
             st.header(f"📊 {maestria}")
             
-            # Datos específicos de la maestría actual
             df_maestria = data_filtered[data_filtered['Maestría'] == maestria]
             
-            # Métricas de control para la maestría
+            # Métricas locales por maestría seleccionada
             m1, m2, m3 = st.columns(3)
-            m1.metric("Total Proyectos", len(df_maestria))
+            m1.metric("Proyectos en este programa", len(df_maestria))
             m2.metric("Sustentaciones", len(df_maestria[df_maestria['Clasificación'] == 'Sustentación']))
             m3.metric("Cogrados", len(df_maestria[df_maestria['Clasificación'] == 'Cogrado']))
             
@@ -105,20 +122,15 @@ if maestrias_disponibles:
             
             # --- SUB-NIVEL: ORGANIZACIÓN POR TEMÁTICA ---
             st.subheader("🎯 Distribución por Temáticas y Mesas de Trabajo")
-            
             tematicas_de_maestria = sorted(df_maestria['Temática / Mesa'].dropna().unique())
             
             if not tematicas_de_maestria:
                 st.info("No se encontraron temáticas registradas para los criterios seleccionados.")
             
             for tematica in tematicas_de_maestria:
-                # Filtrar proyectos de la maestría que pertenezcan a esta temática
                 df_tematica = df_maestria[df_maestria['Temática / Mesa'] == tematica]
                 
-                # Desplegable por cada temática para mantener limpia la vista
                 with st.expander(f"📘 Temática: {tematica} ({len(df_tematica)} Proyectos)", expanded=True):
-                    
-                    # Presentar los datos requeridos estructurados
                     st.dataframe(
                         df_tematica[[
                             'Código', 'Proyecto', 'Clasificación', 
@@ -134,14 +146,26 @@ if maestrias_disponibles:
 else:
     st.warning("No se encontraron datos que coincidan con los filtros aplicados.")
 
-# --- SECCIÓN DE CRÉDITOS EN LA BARRA LATERAL ---
+# --- SECCIÓN DE CRÉDITOS Y ENLACES (BARRA LATERAL Y PIE DE PÁGINA) ---
 st.sidebar.write("---")
 st.sidebar.markdown(
     """
     <div style='font-size: 0.85rem; color: #555555; text-align: center;'>
         <p>© 2026 <b>Jairo Alberto Galindo Cuesta</b></p>
-        <p>Docente<br>Facultad de Ciencias de la Educación - Universidad de La Salle, Colombia</p>
+        <p>Coordinador de Investigación MDGEVA<br>
+        <a href="https://www.unisalle.edu.co" target="_blank" style="color: #00A86B; text-decoration: none; font-weight: bold;">Universidad de La Salle</a></p>
         <p><a href="https://escrituradigital.net" target="_blank" style="color: #0066cc; text-decoration: none;">escrituradigital.net</a></p>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
+
+st.write("---")
+st.markdown(
+    """
+    <div style='text-align: center; padding: 15px; color: #777777; font-size: 0.9rem;'>
+        Copyright © 2026 | Desarrollado para la <b>Facultad de Ciencias de la Educación</b> por <b>Jairo Alberto Galindo Cuesta</b> | 
+        <a href="https://www.unisalle.edu.co" target="_blank" style="color: #00A86B; text-decoration: none; font-weight: bold;">Unisalle</a>
     </div>
     """, 
     unsafe_allow_html=True
