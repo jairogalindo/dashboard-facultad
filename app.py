@@ -36,7 +36,6 @@ def load_and_audit_data():
     df = pd.read_excel(file_path, sheet_name=xls.sheet_names[0])
     
     # --- AUDITORÍA Y NORMALIZACIÓN DE TEXTO ---
-    # Limpiar espacios en blanco al inicio/final y asegurar formato string
     columnas_a_limpiar = [
         'Programa académico en el que se encuentra', 
         'Mesa', 
@@ -49,7 +48,6 @@ def load_and_audit_data():
     for col in columnas_a_limpiar:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
-            # Reemplazar valores nulos simulados por texto vacío limpio
             df[col] = df[col].replace({'nan': '', 'None': '', '<NA>': ''})
 
     # 3. Regla algorítmica para Clasificación del Tipo de Proyecto
@@ -67,7 +65,7 @@ def load_and_audit_data():
 
     df['Tipo_Proyecto'] = df.apply(clasificar_proyecto, axis=1)
     
-    # 4. Enrutador Dinámico de Maestrías (Captura variaciones de escritura)
+    # 4. Enrutador Dinámico de Maestrías
     def normalizar_maestria(val):
         val_upper = str(val).upper()
         if "MDO" in val_upper or "DOCENCIA" in val_upper: 
@@ -80,16 +78,14 @@ def load_and_audit_data():
             return "Maestría en Diseño y Gestión de Escenarios Virtuales (MDGEVA)"
         if val_upper in ['', 'NAN', 'NONE']: 
             return "Programa por Clasificar"
-        return f"Programa: {val}" # Flexibilidad total para nuevos programas
+        return f"Programa: {val}"
 
     df['Maestria_Procesada'] = df['Programa académico en el que se encuentra'].apply(normalizar_maestria)
     
-    # Ajustar valores faltantes en Jefes de Salón y Mesas temáticas
     df['Mesa'] = df['Mesa'].replace({'': 'Por Asignar / Sin Mesa'})
     df['Jefe de Salon'] = df['Jefe de Salon'].replace({'': 'Por Designar'})
-    df['#'] = df['#'].replace({'': 'S.A.'}) # Sin Aula / Espacio
+    df['#'] = df['#'].replace({'': 'S.A.'})
     
-    # Mapeo y renombrado de columnas expuestas
     columnas_finales = {
         'Maestria_Procesada': 'Maestría',
         'CódigoProyecto': 'Código',
@@ -101,15 +97,12 @@ def load_and_audit_data():
         'Enlace': 'Enlace Virtual'
     }
     
-    # Validar que la columna esencial del nombre del proyecto exista
     if 'Nombre Completo y Consolidado del Proyecto' not in df.columns:
         st.error("La estructura de columnas cambió. No se encuentra la columna del nombre del proyecto.")
         st.stop()
         
     df_clean = df[list(columnas_finales.keys())].rename(columns=columnas_finales)
     df_clean = df_clean.dropna(subset=['Proyecto'])
-    
-    # DEDUPLICACIÓN CRÍTICA: Elimina filas idénticas de coautores para no inflar estadísticas
     df_clean = df_clean.drop_duplicates(subset=['Código', 'Proyecto', 'Maestría', 'Temática / Mesa'])
     
     return df_clean, file_path
@@ -166,7 +159,6 @@ if maestrias_disponibles:
             
             df_maestria = data_filtered[data_filtered['Maestría'] == maestria]
             
-            # Métricas locales del programa académico seleccionado
             m1, m2, m3 = st.columns(3)
             m1.metric("Proyectos Únicos", len(df_maestria))
             m2.metric("Sustentaciones", len(df_maestria[df_maestria['Clasificación'] == 'Sustentación']))
@@ -174,7 +166,6 @@ if maestrias_disponibles:
             
             st.write("---")
             
-            # Despliegue por Temática / Mesa
             st.subheader("🎯 Distribución por Temáticas y Mesas de Trabajo")
             tematicas_locales = sorted(df_maestria['Temática / Mesa'].unique())
             
@@ -196,15 +187,31 @@ if maestrias_disponibles:
 else:
     st.warning("No se encontraron registros que coincidan con los criterios de búsqueda.")
 
-# --- SECCIÓN DE AUTORÍA INSTITUCIONAL ---
+# --- 📝 CONTROL DE AUTORÍA Y MARCO LEGAL DNDA COLOMBIA ---
 st.sidebar.write("---")
 st.sidebar.markdown(
     """
-    <div style='font-size: 0.85rem; color: #555555; text-align: center;'>
-        <p>© 2026 <b>Jairo Alberto Galindo Cuesta</b></p>
+    <div style='font-size: 0.85rem; color: #444444; text-align: center; line-height: 1.3;'>
+        <p><b>© 2026 Jairo Alberto Galindo Cuesta</b></p>
+        <p>Todos los derechos reservados de conformidad con la Ley 23 de 1982 y la Decisión Andina 351 de 1993.</p>
         <p>Coordinador de Investigación MDGEVA<br>
         <a href="https://www.unisalle.edu.co" target="_blank" style="color: #00A86B; text-decoration: none; font-weight: bold;">Universidad de La Salle</a></p>
         <p><a href="https://escrituradigital.net" target="_blank" style="color: #0066cc; text-decoration: none;">escrituradigital.net</a></p>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
+
+st.write("---")
+st.markdown(
+    """
+    <div style='text-align: center; padding: 20px; background-color: #f9f9f9; border-top: 1px solid #e3e3e3; color: #666666; font-size: 0.85rem; line-height: 1.5;'>
+        <b>Aviso de Reserva de Derechos de Autor (Software)</b><br>
+        © Copyright 2026 | <b>Jairo Alberto Galindo Cuesta</b>. Todos los derechos reservados.<br>
+        Esta aplicación de software y su arquitectura de código fuente han sido desarrolladas de manera independiente para la 
+        <b>Facultad de Ciencias de la Educación</b> de la <b>Universidad de La Salle</b>. <br>
+        Prohibida su reproducción parcial o total, ingeniería inversa o distribución comercial sin la autorización expresa del titular del derecho moral y patrimonial. <br>
+        <span style="font-size: 0.75rem; color: #999999;">Desarrollado en Python con entorno Streamlit Community Cloud. Bogotá D.C., Colombia.</span>
     </div>
     """, 
     unsafe_allow_html=True
