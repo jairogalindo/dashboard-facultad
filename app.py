@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# 1. Configuración de la interfaz
+# 1. Configuración de la interfaz y la página
 st.set_page_config(
     page_title="Dashboard de Investigaciones - Facultad",
     page_icon="🎓",
@@ -80,7 +80,7 @@ def load_and_audit_data():
             return "Maestría en Diseño y Gestión de Escenarios Virtuales (MDGEVA)"
         if val_upper in ['', 'NAN', 'NONE']: 
             return "Programa por Clasificar"
-        return f"Programa: {val}" # Flexibilidad total para nuevos programas en v3
+        return f"Programa: {val}" # Flexibilidad total para nuevos programas
 
     df['Maestria_Procesada'] = df['Programa académico en el que se encuentra'].apply(normalizar_maestria)
     
@@ -109,7 +109,7 @@ def load_and_audit_data():
     df_clean = df[list(columnas_finales.keys())].rename(columns=columnas_finales)
     df_clean = df_clean.dropna(subset=['Proyecto'])
     
-    # DEDUPLICACIÓN CRÍTICA: Elimina filas idénticas generadas al listar múltiples coautores
+    # DEDUPLICACIÓN CRÍTICA: Elimina filas idénticas de coautores para no inflar estadísticas
     df_clean = df_clean.drop_duplicates(subset=['Código', 'Proyecto', 'Maestría', 'Temática / Mesa'])
     
     return df_clean, file_path
@@ -119,10 +119,10 @@ data, archivo_activo = load_and_audit_data()
 
 # --- VISTA PRINCIPAL DEL APLICATIVO ---
 st.title("🎓 Sistema Integrado de Investigaciones - Facultad de Ciencias de la Educación")
-st.markdown(f"**Origen de datos activo:** `{archivo_activa}` | Monitoreo en tiempo real de agendas y mesas virtuales.")
+st.markdown(f"**Origen de datos activo:** `{archivo_activo}` | Monitoreo en tiempo real de agendas y mesas virtuales.")
 st.write("---")
 
-# --- CONTROL DE ESTADÍSTICAS (KPIs) ---
+# --- 📊 CONTROL DE ESTADÍSTICAS (KPIs) ---
 st.subheader("📈 Indicadores Consolidados de la Facultad")
 total_p = len(data)
 total_s = len(data[data['Clasificación'] == 'Sustentación'])
@@ -166,7 +166,7 @@ if maestrias_disponibles:
             
             df_maestria = data_filtered[data_filtered['Maestría'] == maestria]
             
-            # Métricas del programa
+            # Métricas locales del programa académico seleccionado
             m1, m2, m3 = st.columns(3)
             m1.metric("Proyectos Únicos", len(df_maestria))
             m2.metric("Sustentaciones", len(df_maestria[df_maestria['Clasificación'] == 'Sustentación']))
@@ -196,7 +196,7 @@ if maestrias_disponibles:
 else:
     st.warning("No se encontraron registros que coincidan con los criterios de búsqueda.")
 
-# --- SECCIÓN DE AUTORÍA INSTITUTIONAL ---
+# --- SECCIÓN DE AUTORÍA INSTITUCIONAL ---
 st.sidebar.write("---")
 st.sidebar.markdown(
     """
